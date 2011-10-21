@@ -1,7 +1,14 @@
+# DSL For Defining Input Validation Rules
+
 use strict;
 use warnings;
 
 package Validation::Class::Sugar;
+
+# VERSION
+
+use Scalar::Util qw(blessed);
+use Carp qw(confess);
 
 use Moose ('has');
 use Moose::Exporter;
@@ -16,31 +23,85 @@ Moose::Exporter->setup_import_methods(
     also => 'Moose',
 );
 
-has config => (
-    is  => 'rw',
-    isa => 'HashRef',
-    default => sub {{
-        FIELDS     => {},
-        MIXINS     => {},
-        FILTERS    => {},
-        DIRECTIVES => {}
-    }}
-);
-
 sub field {
-    print "printing from field() provided by sugar\n";
+    my ($meta, %spec) = @_;
+    my $config = $meta->find_attribute_by_name('config');
+    confess("config attribute not present") unless blessed($config);
+
+    if (%spec) {
+        my $name = ( keys(%spec) )[0];
+        my $data = ( values(%spec) )[0];
+
+        my $CFG = $config->{default}->();
+           $CFG->{FIELDS}->{$name} = $data;
+           $CFG->{FIELDS}->{$name}->{errors} = [];
+           
+        $config->{default} = sub {
+            return $CFG
+        }
+    }
+
+    return 'field', %spec;
 }
 
 sub mixin {
-    print "printing from mixin() provided by sugar\n";
+    my ($meta, %spec) = @_;
+    my $config = $meta->find_attribute_by_name('config');
+    confess("config attribute not present") unless blessed($config);
+
+    if (%spec) {
+        my $name = ( keys(%spec) )[0];
+        my $data = ( values(%spec) )[0];
+
+        my $CFG = $config->{default}->();
+           $CFG->{MIXINS}->{$name} = $data;
+           
+        $config->{default} = sub {
+            return $CFG
+        }
+    }
+
+    return 'mixin', %spec;
 }
 
 sub filter {
-    print "printing from field() provided by sugar\n";
+    my ($meta, $name, $data) = @_;
+    my $config = $meta->find_attribute_by_name('config');
+    confess("config attribute not present") unless blessed($config);
+
+    if ($name && ref $data) {
+        
+        my $CFG = $config->{default}->();
+           $CFG->{FILTERS}->{$name} = $data;
+        
+        $config->{default} = sub {
+            return $CFG
+        }
+    }
+
+    return 'filter', $name, $data;
 }
 
 sub directive {
-    print "printing from field() provided by sugar\n";
+    my ($meta, $name, $data) = @_;
+    my $config = $meta->find_attribute_by_name('config');
+    confess("config attribute not present") unless blessed($config);
+
+    if ($name && $data) {
+        
+        my $CFG = $config->{default}->();
+           $CFG->{DIRECTIVES}->{$name} = {
+                mixin     => 1,
+                field     => 1,
+                validator => $data
+           };
+        
+        $config->{default} = sub {
+            return $CFG
+        }   
+    }
+
+    return 'directive', $name, $data;
 }
 
 no Moose::Exporter;

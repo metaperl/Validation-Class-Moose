@@ -1,0 +1,15 @@
+*
+!.gitignore
+!dist.ini
+!t/*/*
+!t/*
+!t/
+!lib/*/*/*
+!lib/*/*
+!lib/*
+!lib/
+!CHANGES
+!LICENSE
+!Makefile.PL
+!README
+!README.mkdn
