@@ -2,6 +2,17 @@
 Changes from 2010-10-21 00:00:00 +0000 to present.
 ==================================================
 
+------------------------------------------
+version 1.9.0 at 2011-10-21 02:21:19 +0000
+------------------------------------------
+
+  Change: 4db8e04d7a4d19813643d308e199b70e3660337b
+  Author: Al Newkirk <we@ana.im>
+  Date : 2011-10-20 22:20:53 +0000
+
+    releasing 1.9.0 (alpha) moose-based Validation::Class framework, test
+    coverage about 45%, completely re-written 
+
 -------------------------------------
 version  at 2011-10-20 17:55:12 +0000
 -------------------------------------

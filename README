@@ -10,7 +10,7 @@ SYNOPSIS
         my $input = MyApp::Validation->new(params => $params);
     
         unless ($input->validate()){
-            return $input->errors->to_string;
+            return $input->errors_to_string;
         }
 
 DESCRIPTION
@@ -74,7 +74,7 @@ DESCRIPTION
             unless ($rules->validate('login', 'password')) {
             
                 # print errors to browser unless validation is successful
-                return $rules->errors->to_string;
+                return $rules->errors_to_string;
             }
         
             return 'you have authenticated';
@@ -574,7 +574,7 @@ THE VALIDATION CLASS
     
         my $input = MyApp::Validation->new(params => $params);
         unless ($input->validate('field1','field2')){
-            return $input->errors->to_string;
+            return $input->errors_to_string;
         }
 
     Feeling lazy, have your validation class automatically find the
@@ -584,7 +584,7 @@ THE VALIDATION CLASS
     
         my $input = MyApp::Validation->new(params => $params);
         unless ($input->validate){
-            return $input->errors->to_string;
+            return $input->errors_to_string;
         }
 
     You can define an alias to automatically map a parameter to a validation
@@ -608,7 +608,7 @@ THE VALIDATION CLASS
     
         my  $input = MyApp::Validation->new(params => { foo => 1 });
         unless ($input->validate(){
-            return $input->errors->to_string;
+            return $input->errors_to_string;
         }
 
   new
@@ -723,27 +723,14 @@ VALIDATION CLASS METHODS
             my $fields = $self->error();
         }
 
-  errors
-    The errors function returns a special class (Validation::Class::Errors)
-    used to add convenience methods to the error objects. This class can be
-    utilized as follows.
+  error_count
+    The error_count function returns the total number of error encountered
+    from the last validation call.
 
-        # by default uses errors specified at the class-level
-        return $self->errors;
+        return $self->error_count();
     
-        # count() method returns the number of errors encoutered
-        return $self->errors->count();
-    
-        # to_string($delimiter) method strigifies the error arrayref object using
-        # the specified delimiter or ', ' by default
-        return $self->errors->to_string();
-        return $self->errors->to_string("<br/>\n");
-    
-        # use errors at the field-level in the errors class
-        return $self->errors($self->fields->{some_field})->count();
-
         unless ($self->validate) {
-            return $self->errors->to_string;
+            print "Found ". $self->error_count ." Errors";
         }
 
   error_fields
@@ -751,7 +738,18 @@ VALIDATION CLASS METHODS
     arrayref of error messages.
 
         unless ($self->validate) {
-            my $fields = $self->error_fields();
+            my $bad_fields = $self->error_fields();
+        }
+
+  errors_to_string
+    The errors_to_string function stringifies the error arrayref object
+    using the specified delimiter or ', ' by default.
+
+        return $self->errors_to_string();
+        return $self->errors_to_string("<br/>\n");
+    
+        unless ($self->validate) {
+            return $self->errors_to_string;
         }
 
   get_params
@@ -819,17 +817,17 @@ VALIDATION CLASS METHODS
     
         # validate specific fields
         unless ($input->validate('field1','field2')){
-            return $input->errors->to_string;
+            return $input->errors_to_string;
         }
     
         # validate all fields, regardless of parameter existence
         unless ($input->validate()){
-            return $input->errors->to_string;
+            return $input->errors_to_string;
         }
     
         # validate all existing parameters
         unless ($input->validate(keys %{$input->params})){
-            return $input->errors->to_string;
+            return $input->errors_to_string;
         }
     
         # validate specific parameters (by name) after mapping them to other fields
@@ -838,7 +836,7 @@ VALIDATION CLASS METHODS
             param2 => 'field_def'
         };
         unless ($input->validate($map)){
-            return $input->errors->to_string;
+            return $input->errors_to_string;
         }
 
   reset_errors
