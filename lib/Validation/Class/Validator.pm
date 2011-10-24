@@ -635,7 +635,15 @@ sub get_params_hash {
 }
 
 sub param {
-    return defined $_[0]->params->{$_[1]} ? $_[0]->params->{$_[1]} : undef;
+    my  ($self, $name, $value) = @_;
+    
+    return undef unless $name;
+    
+    if ($value) {
+        $self->params->{$name} = $value;
+    }
+    
+    return $self->params->{$name};
 }
 
 sub queue {
