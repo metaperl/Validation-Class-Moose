@@ -1,4 +1,4 @@
-use Test::More tests => 2;
+use Test::More tests => 7;
 
 package MyVal;
 
