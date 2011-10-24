@@ -1060,22 +1060,24 @@ passed validation checks.
         return $input->errors_to_string;
     }
     
-    # validate all fields, regardless of parameter existence
+    # validate existing parameters, if no parameters exist,
+    # validate all fields ... which will return true unless field(s) exist
+    # with a required directive
     unless ($input->validate()){
         return $input->errors_to_string;
     }
     
-    # validate all existing parameters
-    unless ($input->validate(keys %{$input->params})){
+    # validate all fields period, obviously
+    unless ($input->validate(keys %{$input->fields})){
         return $input->errors_to_string;
     }
     
     # validate specific parameters (by name) after mapping them to other fields
-    my $map = {
-        param1 => 'field_abc',
-        param2 => 'field_def'
+    my $parameter_map = {
+        user => 'hey_im_not_named_login',
+        pass => 'password_is_that_really_you'
     };
-    unless ($input->validate($map)){
+    unless ($input->validate($parameter_map)){
         return $input->errors_to_string;
     }
 

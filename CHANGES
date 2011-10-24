@@ -1,5 +1,10 @@
 This file documents the revision history for the Perl library Validation::Class.
 
+2.0.0   2011-10-24
+        - Updated POD
+        - Added queue (persistent fields) functionality
+        - Added stashed attribute and reset, param, and queue methods
+
 1.9.5   2011-10-23
-        - Completely rewritten with using Moose
+        - Completely rewritten with Moose
         - Fixed mixin and mixin_field merging policy
