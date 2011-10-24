@@ -363,6 +363,13 @@ has 'report_unknown' => (
     default => 0
 );
 
+# collection of field names to be used in validation
+has 'stashed' => (
+    is      => 'rw',
+    isa     => 'ArrayRef',
+    default => sub { [] }
+);
+
 # mixin/field directives store
 has 'types' => (
     is      => 'rw',
@@ -627,11 +634,28 @@ sub get_params_hash {
     return $params;
 }
 
+sub param {
+    return defined $_[0]->params->{$_[1]} ? $_[0]->params->{$_[1]} : undef;
+}
+
+sub queue {
+    my  ($self, @field_names) = @_;
+    push @{$self->stashed}, @field_names if @field_names;
+    return $self;
+}
+
 sub set_params_hash {
     my ($self, $params) = @_;
     my $serializer = Hash::Flatten->new($self->hash_inflator);
     
     return $self->params($serializer->flatten($params));
+}
+
+sub reset {
+    my  $self = shift;
+        $self->stashed([]);
+        $self->reset_fields;
+    return $self;
 }
 
 sub reset_errors {
@@ -768,6 +792,11 @@ sub validate {
             $self->params->{ $map->{$param} } = $param_value;
             push @fields, $map->{$param};
         }
+    }
+    
+    # include fields stashed by the queue method
+    if (@{$self->stashed}) {
+        push @fields, @{$self->stashed};
     }
     
     # create map from aliases if applicable
