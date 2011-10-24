@@ -940,6 +940,12 @@ sub _suicide_by_unknown_field {
 sub _merge_field_with_mixin {
     my ($self, $field, $mixin) = @_;
     while (my($key,$value) = each(%{$mixin})) {
+        
+        # do not override existing keys but multi values append
+        if (grep { $key eq $_ } keys %{$field}) {
+            next unless $self->types->{field}->{$key}->{multi};
+        }
+        
         if (defined $self->types->{field}->{$key}) {
             # can the directive have multiple values, merge array
             if ($self->types->{field}->{$key}->{multi}) {
@@ -954,7 +960,8 @@ sub _merge_field_with_mixin {
                 }
                 # simple copy
                 else {
-                    $field->{$key} = $value;
+                    $field->{$key} = "ARRAY" eq ref $value ?
+                        [@{$value}] : $value;
                 }
             }
             # simple copy
@@ -973,6 +980,11 @@ sub _merge_field_with_field {
         # skip unless the directive is mixin compatible
         next unless $self->types->{mixin}->{$key}->{mixin};
         
+        # do not override existing keys but multi values append
+        if (grep { $key eq $_ } keys %{$field}) {
+            next unless $self->types->{field}->{$key}->{multi};
+        }
+        
         if (defined $self->types->{field}->{$key}) {
             # can the directive have multiple values, merge array
             if ($self->types->{field}->{$key}->{multi}) {
@@ -987,7 +999,8 @@ sub _merge_field_with_field {
                 }
                 # simple copy
                 else {
-                    $field->{$key} = $value;
+                    $field->{$key} = "ARRAY" eq ref $value ?
+                        [@{$value}] : $value;
                 }
             }
             # simple copy
