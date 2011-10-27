@@ -9,7 +9,7 @@ use ExtUtils::MakeMaker 6.30;
 
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "Centralized Input Validation for Any Application",
+  "ABSTRACT" => "Centralized Input Validation for Any Application\r",
   "AUTHOR" => "Al Newkirk <awncorp\@cpan.org>",
   "BUILD_REQUIRES" => {},
   "CONFIGURE_REQUIRES" => {
@@ -23,10 +23,11 @@ my %WriteMakefileArgs = (
     "Array::Unique" => 0,
     "Carp" => 0,
     "Hash::Flatten" => 0,
+    "Module::Find" => 0,
     "Moose" => 0,
     "Scalar::Util" => 0
   },
-  "VERSION" => "2.0.01",
+  "VERSION" => "2.1.0",
   "test" => {
     "TESTS" => "t/*.t t/filters/*.t t/validators/*.t"
   }

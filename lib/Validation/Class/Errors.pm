@@ -1,4 +1,4 @@
-# ABSTRACT: Input Validation Error Handling
+# Input Validation Error Handling
 
 use strict;
 use warnings;

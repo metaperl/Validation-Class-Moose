@@ -2,14 +2,14 @@ NAME
     Validation::Class - Centralized Input Validation for Any Application
 
 VERSION
-    version 2.0.01
+    version 2.1.0
 
 SYNOPSIS
         use MyApp::Validation;
-        
-    my $input = MyApp::Validation->new(params => $params);
-        
-    unless ($input->validate()){
+    
+        my $input = MyApp::Validation->new(params => $params);
+    
+        unless ($input->validate()){
             return $input->errors_to_string;
         }
 
@@ -23,10 +23,10 @@ DESCRIPTION
     validation class is defined as follows:
 
         package MyApp::Validation;
-        
-    use Validation::Class;
-        
-    # a validation rule
+    
+        use Validation::Class;
+    
+        # a validation rule
         field 'login'  => {
             label      => 'User Login',
             error      => 'Login invalid.',
@@ -36,8 +36,8 @@ DESCRIPTION
                 return $this_field->{value} eq 'admin' ? 1 : 0;
             }
         };
-        
-    # a validation rule
+    
+        # a validation rule
         field 'password'  => {
             label         => 'User Password',
             error         => 'Password invalid.',
@@ -47,8 +47,8 @@ DESCRIPTION
                 return $this_field->{value} eq 'pass' ? 1 : 0;
             }
         };
-        
-    1;
+    
+        1;
 
     The fields defined will be used to validate the specified input
     parameters. You specify the input parameters at instantiaton, parameters
@@ -60,39 +60,40 @@ DESCRIPTION
 
         # web app
         package MyApp;
-        
-    use MyApp::Validation;
+    
+        use MyApp::Validation;
         use Misc::WebAppFramework;
-        
-    get '/auth' => sub {
+    
+        get '/auth' => sub {
             # get user input parameters
             my $params = shift;
-        
-        # initialize validation class and set input parameters
+    
+            # initialize validation class and set input parameters
             my $rules = MyApp::Validation->new(params => $params);
+        
+            unless ($rules->validate('login', 'password')) {
             
-        unless ($rules->validate('login', 'password')) {
-                
-            # print errors to browser unless validation is successful
+                # print errors to browser unless validation is successful
                 return $rules->errors_to_string;
             }
-            
-        return 'you have authenticated';
+        
+            return 'you have authenticated';
         };
 
 CHANGE NOTICE
-    Important Note! Validation::Class is subject to change, you've been
-    warned. You should be fine if you stay tuned.
+    Important Note! Validation::Class is subject to change, though not
+    dramatically, you've been warned. Users of this library pre-v2 should
+    not that the error accessors were changed.
 
     Validation::Class has been re-written using Moose. Sorry if you feel
     this bloats your application but using Moose was the better approach.
 
-    Validation::Class now supports hash serialization/deserialization which
-    means that you can now set the parameters using a hashref of nested
-    hashrefs and validate against them, or set the parameters using a
-    hashref of key/value pairs and validate against that. This function is
-    provided in Validation::Class via Hash::Flatten. The following is an
-    example of that:
+    Validation::Class now supports hash automatic
+    serialization/deserialization which means that you can now set the
+    parameters using a hashref of nested hashrefs and validate against them,
+    or set the parameters using a hashref of key/value pairs and validate
+    against that. This function is provided in Validation::Class via
+    Hash::Flatten. The following is an example of that:
 
         my $params = {
             user => {
@@ -100,37 +101,37 @@ CHANGE NOTICE
                 password => 'pass'
             }
         };
-        
-    my $rules = MyApp::Validation->new(params => $params);
-        
-    # or
-        
-    my $params = {
+    
+        my $rules = MyApp::Validation->new(params => $params);
+    
+        # or
+    
+        my $params = {
             'user.login' => 'admin',
             'user.password' => 'pass'
         };
-        
-    my $rules = MyApp::Validation->new(params => $params);
-        
-    # after filtering, validation, etc ... return your params as a hashref if
+    
+        my $rules = MyApp::Validation->new(params => $params);
+    
+        # after filtering, validation, etc ... return your params as a hashref if
         # needed
-        
-    my $params = $rules->get_params_hash;
+    
+        my $params = $rules->get_params_hash;
 
 BUILDING A VALIDATION CLASS
         package MyApp::Validation;
-        
-    use Validation::Class;
-        
-    # a validation rule template
+    
+        use Validation::Class;
+    
+        # a validation rule template
         mixin 'basic'  => {
             required   => 1,
             min_length => 1,
             max_length => 255,
             filters    => ['lowercase', 'alphanumeric']
         };
-        
-    # a validation rule
+    
+        # a validation rule
         field 'user.login'  => {
             mixin      => 'basic',
             label      => 'user login',
@@ -140,8 +141,8 @@ BUILDING A VALIDATION CLASS
                 return $this->{value} eq 'admin' ? 1 : 0;
             }
         };
-        
-    # a validation rule
+    
+        # a validation rule
         field 'user.password'  => {
             mixin         => 'basic',
             label         => 'user login',
@@ -151,8 +152,8 @@ BUILDING A VALIDATION CLASS
                 return $this->{value} eq 'pass' ? 1 : 0;
             }
         };
-        
-    1;
+    
+        1;
 
   THE MIXIN KEYWORD
     The mixin keyword creates a validation rules template that can be
@@ -160,15 +161,15 @@ BUILDING A VALIDATION CLASS
 
         package MyApp::Validation;
         use Validation::Class;
-        
-    mixin 'constrain' => {
+    
+        mixin 'constrain' => {
             required   => 1,
             min_length => 1,
             max_length => 255,
             ...
         };
-        
-    # e.g.
+    
+        # e.g.
         field 'login' => {
             mixin => 'constrain',
             ...
@@ -180,14 +181,14 @@ BUILDING A VALIDATION CLASS
 
         package MyApp::Validation;
         use Validation::Class;
-        
-    filter 'usa_telephone_number_converter' => sub {
+    
+        filter 'usa_telephone_number_converter' => sub {
             $_[0] =~ s/\D//g;
             my ($ac, $pre, $num) = $_[0] =~ /(\d{3})(\d{3})(\d{4})/;
             $_[0] = "($ac) $pre-$num";
         };
-        
-    # e.g.
+    
+        # e.g.
         field 'my_telephone' => {
             filter => ['trim', 'usa_telephone_number_converter'],
             ...
@@ -201,8 +202,8 @@ BUILDING A VALIDATION CLASS
 
         package MyApp::Validation;
         use Validation::Class;
-        
-    directive 'between' => sub {
+    
+        directive 'between' => sub {
             my ($directive, $value, $field, $class) = @_;
             my ($min, $max) = split /\-/, $directive;
             unless ($value > $min && $value < $max) {
@@ -212,8 +213,8 @@ BUILDING A VALIDATION CLASS
             }
             return 1;
         };
-        
-    # e.g.
+    
+        # e.g.
         field 'hours' => {
             between => '00-24',
             ...
@@ -226,8 +227,8 @@ BUILDING A VALIDATION CLASS
 
         package MyApp::Validation;
         use Validation::Class;
-        
-    field 'login' => {
+    
+        field 'login' => {
             required   => 1,
             min_length => 1,
             max_length => 255,
@@ -237,23 +238,62 @@ BUILDING A VALIDATION CLASS
     The field keword takes two arguments, the field name and a hashref of
     key/values pairs.
 
+SEPERATION OF CONCERNS
+    For larger applications were a single validation class might become
+    cluttered and inefficient Validation::Class come equipped to help you
+    seperate your validation rules into seperate classes.
+
+    The idea is that you'll end up with a main validation class (most-likely
+    empty) that will simply serve as your point of entry into your relative
+    (child) classes. The following is an example of this:
+
+        package MyVal::User;
+        use Validation::Class;
+    
+        field name => { ... };
+        field email => { ... };
+        field login => { ... };
+        field password => { ... };
+    
+        package MyVal::Profile;
+        use Validation::Class;
+    
+        field age => { ... };
+        field sex => { ... };
+        field birthday => { ... };
+    
+        package MyVal;
+        use Validation::Class;
+    
+        __PACKAGE__->load_classes;
+    
+        package main;
+    
+        my $rules = MyVal->new(params => $params);
+        my $user = $rules->class('user');
+        my $profile = $rules->class('profile');
+    
+        ...
+    
+        1;
+
 DEFAULT FIELD/MIXIN DIRECTIVES
         package MyApp::Validation;
         use Validation::Class;
-        
-    # a validation template
+    
+        # a validation template
         mixin '...'  => {
             # mixin directives here
             ...
         };
-        
-    # a validation rule
+    
+        # a validation rule
         field '...'  => {
             # field directives here
             ...
         };
-        
-    1;
+    
+        1;
 
     When building a validation class, the first encountered and arguably two
     most important keyword functions are field() and mixin() which are used
@@ -331,8 +371,8 @@ DEFAULT FIELD/MIXIN DIRECTIVES
             label => 'Foo Bar',
             required => 1
         };
-        
-    field 'barbaz'  => {
+    
+        field 'barbaz'  => {
             mixin_field => 'foobar',
             label => 'Bar Baz',
             ...
@@ -358,20 +398,20 @@ DEFAULT FIELD/MIXIN DIRECTIVES
             required => 1,
             ...
         };
-        
-    # pass
+    
+        # pass
         my $rules = MyApp::Validation->new(params => { barbaz => 'blahblahblah' });
         $rules->validate('barbaz');
-        
-    # fail
+    
+        # fail
         my $rules = MyApp::Validation->new(params => { barbaz => 'blahblahblah' });
         $rules->validate('foobar');
-        
-    # fail
+    
+        # fail
         my $rules = MyApp::Validation->new(params => { barbaz => 'blahblahblah' });
         $rules->validate('foobar');
-        
-    # pass
+    
+        # pass
         my $rules = MyApp::Validation->new(params => { foobar => 'blahblahblah' });
         $rules->validate('foobar');
 
@@ -492,17 +532,17 @@ DEFAULT FIELD/MIXIN FILTER DIRECTIVES
 
 DEFAULT FIELD/MIXIN VALIDATOR DIRECTIVES
         package MyApp::Validation;
-        
-    use Validation::Class;
-        
-    # a validation rule with validator directives
+    
+        use Validation::Class;
+    
+        # a validation rule with validator directives
         field 'telephone_number'  => {
             length => 14,
             pattern => '(###) ###-####',
             ...
         };
-        
-    1;
+    
+        1;
 
     Validator directives are special directives with associated validation
     code that is used to validate common use-cases such as "checking the
@@ -559,8 +599,8 @@ DEFAULT FIELD/MIXIN VALIDATOR DIRECTIVES
             pattern => '### ###-####',
             ...
         };
-        
-    field 'country_code'  => {
+    
+        field 'country_code'  => {
             pattern => 'XX',
             filter  => 'uppercase'
             ...
@@ -571,8 +611,8 @@ THE VALIDATION CLASS
     class in other code, .e.g. Web App Controller, etc.
 
         use MyApp::Validation;
-        
-    my $input = MyApp::Validation->new(params => $params);
+    
+        my $input = MyApp::Validation->new(params => $params);
         unless ($input->validate('field1','field2')){
             return $input->errors_to_string;
         }
@@ -581,8 +621,8 @@ THE VALIDATION CLASS
     appropriate fields to validate against (params must match field names).
 
         use MyApp::Validation;
-        
-    my $input = MyApp::Validation->new(params => $params);
+    
+        my $input = MyApp::Validation->new(params => $params);
         unless ($input->validate){
             return $input->errors_to_string;
         }
@@ -593,8 +633,8 @@ THE VALIDATION CLASS
     passed-in parameters.
 
         package MyApp::Validation;
-        
-    field 'foo.bar' => {
+    
+        field 'foo.bar' => {
             ...,
             alias => [
                 'foo',
@@ -605,8 +645,8 @@ THE VALIDATION CLASS
         };
 
         use MyApp::Validation;
-        
-    my  $input = MyApp::Validation->new(params => { foo => 1 });
+    
+        my  $input = MyApp::Validation->new(params => { foo => 1 });
         unless ($input->validate(){
             return $input->errors_to_string;
         }
@@ -616,12 +656,12 @@ THE VALIDATION CLASS
     class.
 
         use MyApp::Validation;
-        
-    my $input = MyApp::Validation->new;
+    
+        my $input = MyApp::Validation->new;
         $input->params($params);
         ...
-        
-    my $input = MyApp::Validation->new(params => $params);
+    
+        my $input = MyApp::Validation->new(params => $params);
         ...
 
 VALIDATION CLASS ATTRIBUTES
@@ -676,13 +716,13 @@ VALIDATION CLASS ATTRIBUTES
         my $input = {
             ...
         };
-        
-    my $self = MyApp::Validation->new(params => $input);
-        
-    $self->params($input);
+    
+        my $self = MyApp::Validation->new(params => $input);
+    
+        $self->params($input);
         my $params = $self->params();
-        
-    ...
+    
+        ...
 
   report_unknown
     The report_unknown boolean determines whether your application will
@@ -709,6 +749,25 @@ VALIDATION CLASS ATTRIBUTES
         $self->stashed([qw/this that .../]);
 
 VALIDATION CLASS METHODS
+  class
+    The class method returns a new initialize child validation class under
+    the namespace of the calling class that issued the load_classes() method
+    call. Existing parameters and configuration options are passed to the
+    child class's constructor. All attributes can be easily overwritten
+    using the attribute's accessors on the child class.
+
+        package MyVal;
+        use Validation::Class; __PACKAGE__->load_classes;
+    
+        package main;
+    
+        my $rules = MyVal->new(params => $params);
+    
+        my $kid1 = $rules->class('child'); # loads MyVal::Child;
+        my $kid2 = $rules->class('step_child'); # loads MyVal::StepChild;
+    
+        1;
+
   error
     The error function is used to set and/or retrieve errors encountered
     during validation. The error function with no parameters returns the
@@ -717,12 +776,12 @@ VALIDATION CLASS METHODS
 
         # return all errors encountered/set as an arrayref
         return $self->error();
-        
-    # return all errors specific to the specified field (at the field-level)
+    
+        # return all errors specific to the specified field (at the field-level)
         # as an arrayref
         return $self->error('some_param');
-        
-    # set an error specific to the specified field (at the field-level)
+    
+        # set an error specific to the specified field (at the field-level)
         # using the field object (hashref not field name)
         $self->error($field_object, "i am your error message");
 
@@ -735,8 +794,8 @@ VALIDATION CLASS METHODS
     from the last validation call.
 
         return $self->error_count();
-        
-    unless ($self->validate) {
+    
+        unless ($self->validate) {
             print "Found ". $self->error_count ." Errors";
         }
 
@@ -754,8 +813,8 @@ VALIDATION CLASS METHODS
 
         return $self->errors_to_string();
         return $self->errors_to_string("<br/>\n");
-        
-    unless ($self->validate) {
+    
+        unless ($self->validate) {
             return $self->errors_to_string;
         }
 
@@ -767,12 +826,12 @@ VALIDATION CLASS METHODS
             my $name_a = $self->get_params('name');
             my ($name_b, $email, $login, $password) =
                 $self->get_params(qw/name email login password/);
-            
-        # you should note that if the params dont exist they will return undef
+        
+            # you should note that if the params dont exist they will return undef
             # ... meaning you should check that it exists before checking its value
             # e.g.
-            
-        if (defined $name) {
+        
+            if (defined $name) {
                 if ($name eq '') {
                     print 'name parameter was passed but was empty';
                 }
@@ -792,11 +851,22 @@ VALIDATION CLASS METHODS
             'user.login' => 'member',
             'user.password' => 'abc123456'
         };
-        
-    if ($self->validate(keys %$params)) {
+    
+        if ($self->validate(keys %$params)) {
             my $params = $self->get_params_hash;
             print $params->{user}->{login};
         }
+
+  load_classes
+    The load_classes method is uses Module::Find to load child classes for
+    convenient access through the class() method. Existing parameters and
+    configuration options are passed to the child class's constructor. All
+    attributes can be easily overwritten using the attribute's accessors on
+    the child class.
+
+        package MyVal;
+        use Validation::Class; __PACKAGE__->load_classes;
+        1;
 
   param
     The param method returns a single parameter by name.
@@ -812,37 +882,37 @@ VALIDATION CLASS METHODS
 
         # conditional validation flow WITHOUT the queue method
         # imagine a user profile update action
-        
-    my $rules = MyApp::Validation->new(params => $params);
+    
+        my $rules = MyApp::Validation->new(params => $params);
         my @fields = qw/name login/;
-        
-    push @fields, 'email_confirm' if $rules->param('chg_email');
+    
+        push @fields, 'email_confirm' if $rules->param('chg_email');
         push @fields, 'password_confirm' if $rules->param('chg_pass');
-        
-    ... if $rules->validate(@fields);
-        
-    # conditional validation WITH the queue method
-        
-    my $rules = MyApp::Validation->new(params => $params);
-        
-    $rules->queue(qw/name login/);
+    
+        ... if $rules->validate(@fields);
+    
+        # conditional validation WITH the queue method
+    
+        my $rules = MyApp::Validation->new(params => $params);
+    
+        $rules->queue(qw/name login/);
         $rules->queue(qw/email_confirm/) if $rules->param('chg_email');
         $rules->queue(qw/password_confirm/) if $rules->param('chg_pass');
-        
-    ... if $rules->validate();
-        
-    # set fields that must ALWAYS be validated
+    
+        ... if $rules->validate();
+    
+        # set fields that must ALWAYS be validated
         # imagine a simple REST server
+    
+        my $rules = MyApp::Validation->new(params => $params);
+    
+        $rules->queue(qw/login password/);
+    
+        if ($request eq '/resource/:id') {
         
-    my $rules = MyApp::Validation->new(params => $params);
-        
-    $rules->queue(qw/login password/);
-        
-    if ($request eq '/resource/:id') {
+            if ($rules->validate('id')) {
             
-        if ($rules->validate('id')) {
-                
-            # validated login, password and id
+                # validated login, password and id
                 ...
             }
         }
@@ -860,8 +930,8 @@ VALIDATION CLASS METHODS
                 password => 'abc123456'
             }
         };
-        
-    my $serialized_params = $self->set_params_hash($params);
+    
+        my $serialized_params = $self->set_params_hash($params);
 
   reset
     The reset method clears all errors, fields and stashed field names, both
@@ -888,27 +958,27 @@ VALIDATION CLASS METHODS
     specified fields passed validation checks.
 
         use MyApp::Validation;
-        
-    my $input = MyApp::Validation->new(params => $params);
-        
-    # validate specific fields
+    
+        my $input = MyApp::Validation->new(params => $params);
+    
+        # validate specific fields
         unless ($input->validate('field1','field2')){
             return $input->errors_to_string;
         }
-        
-    # validate existing parameters, if no parameters exist,
+    
+        # validate existing parameters, if no parameters exist,
         # validate all fields ... which will return true unless field(s) exist
         # with a required directive
         unless ($input->validate()){
             return $input->errors_to_string;
         }
-        
-    # validate all fields period, obviously
+    
+        # validate all fields period, obviously
         unless ($input->validate(keys %{$input->fields})){
             return $input->errors_to_string;
         }
-        
-    # validate specific parameters (by name) after mapping them to other fields
+    
+        # validate specific parameters (by name) after mapping them to other fields
         my $parameter_map = {
             user => 'hey_im_not_named_login',
             pass => 'password_is_that_really_you'

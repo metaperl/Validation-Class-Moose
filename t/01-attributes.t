@@ -1,6 +1,7 @@
 use Test::More tests => 8;
 
 package MyVal;
+
 use Validation::Class;
 
 package main;

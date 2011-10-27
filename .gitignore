@@ -1,9 +1,12 @@
 *
 !.gitignore
 !dist.ini
-!t/*/*
-!t/*
+!t/*/*.t
+!t/*.t
+!t/*.t
 !t/
+!lib/*/*/*/*/*
+!lib/*/*/*/*
 !lib/*/*/*
 !lib/*/*
 !lib/*
