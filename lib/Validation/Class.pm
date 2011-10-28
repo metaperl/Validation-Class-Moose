@@ -38,7 +38,7 @@ in both the Controller and Model. A validation class is defined as follows:
         error      => 'Login invalid.',
         required   => 1,
         validation => sub {
-            my ($self, $this_field, $all_fields) = @_;
+            my ($self, $this_field, $all_params) = @_;
             return $this_field->{value} eq 'admin' ? 1 : 0;
         }
     };
@@ -49,7 +49,7 @@ in both the Controller and Model. A validation class is defined as follows:
         error         => 'Password invalid.',
         required      => 1,
         validation    => sub {
-            my ($self, $this_field, $all_fields) = @_;
+            my ($self, $this_field, $all_params) = @_;
             return $this_field->{value} eq 'pass' ? 1 : 0;
         }
     };
@@ -91,39 +91,9 @@ validate class to validate input in various scenarios:
 
 B<Important Note!> Validation::Class is subject to change, though not
 dramatically, you've been warned. Users of this library pre-v2 should not that 
-the error accessors were changed. 
-
-Validation::Class has been re-written using L<Moose>. Sorry
-if you feel this bloats your application but using Moose was the better approach.
-
-Validation::Class now supports hash automatic serialization/deserialization
-which means that you can now set the parameters using a hashref of nested
-hashrefs and validate against them, or set the parameters using a hashref of
-key/value pairs and validate against that. This function is provided in
-Validation::Class via L<Hash::Flatten>. The following is an example of that:
-
-    my $params = {
-        user => {
-            login => 'admin',
-            password => 'pass'
-        }
-    };
-    
-    my $rules = MyApp::Validation->new(params => $params);
-    
-    # or
-    
-    my $params = {
-        'user.login' => 'admin',
-        'user.password' => 'pass'
-    };
-    
-    my $rules = MyApp::Validation->new(params => $params);
-    
-    # after filtering, validation, etc ... return your params as a hashref if
-    # needed
-    
-    my $params = $rules->get_params_hash;
+the error accessors were changed. Validation::Class has been re-written using
+L<Moose>. Sorry if you feel this bloats your application but using Moose was the
+better approach.
 
 =cut
 
@@ -259,6 +229,40 @@ pairs.
 
 =cut
 
+=head1 AUTO-SERIALIZATION/DESERIALIZATION
+
+Validation::Class supports hash automatic serialization/deserialization
+which means that you can set the parameters using a hashref of nested
+hashrefs and validate against them, or set the parameters using a hashref of
+key/value pairs and validate against that. This function is provided in
+Validation::Class via L<Hash::Flatten>. The following is an example of that:
+
+    my $params = {
+        user => {
+            login => 'admin',
+            password => 'pass'
+        }
+    };
+    
+    my $rules = MyApp::Validation->new(params => $params);
+    
+    # or
+    
+    my $params = {
+        'user.login' => 'admin',
+        'user.password' => 'pass'
+    };
+    
+    my $rules = MyApp::Validation->new(params => $params);
+    
+    # field definition using field('user.login', ...)
+    # and field('user.password', ...) will match against the parameters above
+    
+    # after filtering, validation, etc ... return your params as a hashref if
+    # needed
+    
+    my $params = $rules->get_params_hash;
+
 =head1 SEPERATION OF CONCERNS
 
 For larger applications were a single validation class might become cluttered
@@ -350,6 +354,19 @@ webapp may take on different names but require the same validation.
 
 =cut
 
+=head2 default
+
+The default directive is used as a default value for a field to be used
+when a matching parameter is not present.
+
+    # the default directive
+    field 'quantity'  => {
+        default => 1,
+        ...
+    };
+
+=cut
+
 =head2 error/errors
 
 The error/errors directive is used to replace the system generated error
@@ -433,7 +450,7 @@ The name directive is used *internally* and cannot be changed.
 The required directive is an important directive but can be misunderstood.
 The required directive used to ensure the *submitted* parameter exists and has
 a value. If the parameter is never submitted, the required directive has no
-effect *unless* the field name is specified when validate() is called.
+effect and *in-fact* all filtering, validation, etc is then skipped.
 
     # the required directive
     field 'foobar'  => {
@@ -441,21 +458,16 @@ effect *unless* the field name is specified when validate() is called.
         ...
     };
     
-    # pass
-    my $rules = MyApp::Validation->new(params => { barbaz => 'blahblahblah' });
-    $rules->validate('barbaz');
-    
     # fail
-    my $rules = MyApp::Validation->new(params => { barbaz => 'blahblahblah' });
-    $rules->validate('foobar');
-    
-    # fail
-    my $rules = MyApp::Validation->new(params => { barbaz => 'blahblahblah' });
+    my $rules = MyApp::Validation->new(params => {  });
     $rules->validate('foobar');
     
     # pass
-    my $rules = MyApp::Validation->new(params => { foobar => 'blahblahblah' });
+    my $rules = MyApp::Validation->new(params => {  foobar => 'Nii=cce });
     $rules->validate('foobar');
+    
+See the toggle functionality within the validate() method. This method allows
+you to temporarily alter whether a field is required or not.
 
 =cut
 
@@ -467,7 +479,7 @@ the field.
     # the validation directive
     field 'login'  => {
         validation => sub {
-            my ($self, $this_field, $all_fields) = @_;
+            my ($self, $this_field, $all_params) = @_;
             return 0 unless $this_field->{value};
             return $this_field->{value} eq 'admin' ? 1 : 0;
         },
@@ -478,8 +490,10 @@ the field.
 
 =head2 value
 
-The value directive is used as a kindof default value for a field to be used
-when a matching parameter is not present.
+The value directive is used internally to store the field's matching parameter's
+value. This value can be set in the definition but SHOULD NOT be used as a
+default value unless you're sure no parameter will overwrite it during runtime.
+If you need to set a default value, see the default directive.
 
     # the value directive
     field 'quantity'  => {
@@ -642,6 +656,16 @@ declarations:
 
 =cut
 
+=head2 depends_on
+
+    # the depends_on directive
+    field 'password_confirm'  => {
+        depends_on => 'password',
+        ...
+    };
+
+=cut
+
 =head2 length
 
     # the length directive
@@ -662,6 +686,26 @@ declarations:
 
 =cut
 
+=head2 max_alpha
+
+    # the max_alpha directive
+    field 'password'  => {
+        max_alpha => 30,
+        ...
+    };
+
+=cut
+
+=head2 max_digits
+
+    # the max_digits directive
+    field 'password'  => {
+        max_digits => 5,
+        ...
+    };
+
+=cut
+
 =head2 max_length
 
     # the max_length directive
@@ -672,11 +716,71 @@ declarations:
 
 =cut
 
+=head2 max_sum
+
+    # the max_sum directive
+    field 'vacation_days'  => {
+        max_sum => 5,
+        ...
+    };
+
+=cut
+
+=head2 max_symbols
+
+    # the max_symbols directive
+    field 'password'  => {
+        max_symbols => 1,
+        ...
+    };
+
+=cut
+
+=head2 min_alpha
+
+    # the min_alpha directive
+    field 'password'  => {
+        min_alpha => 2,
+        ...
+    };
+
+=cut
+
+=head2 min_digits
+
+    # the min_digits directive
+    field 'password'  => {
+        min_digits => 1,
+        ...
+    };
+
+=cut
+
 =head2 min_length
 
     # the min_length directive
     field 'foobar'  => {
-        min_length => 5,
+        min_length => '...',
+        ...
+    };
+
+=cut
+
+=head2 min_sum
+
+    # the min_sum directive
+    field 'vacation_days'  => {
+        min_sum => 0,
+        ...
+    };
+
+=cut
+
+=head2 min_symbols
+
+    # the min_symbols directive
+    field 'password'  => {
+        min_symbols => 0,
         ...
     };
 
@@ -1157,6 +1261,29 @@ passed validation checks.
         pass => 'password_is_that_really_you'
     };
     unless ($input->validate($parameter_map)){
+        return $input->errors_to_string;
+    }
+    
+Once cool trick the validate method can perform is the ability to temporarily
+alter whether a field is required or not during runtime. This functionality is
+often referred to as the *toggle* function.
+
+This function is important when you define a field (or two or three) as required
+or non and want to change that per validation. This is done by calling the
+validate() method with a list of fields to be validated and prefixing the
+target fields with a plus or minus as follows:
+
+    use MyApp::Validation;
+    
+    my $input = MyApp::Validation->new(params => $params);
+    
+    # validate specific fields, force name, email and phone to be required
+    # regardless of the field definitions directives ... and force the age, sex
+    # and birthday to be optional
+    
+    my @spec = qw(+name +email +phone -age -sex -birthday);
+    
+    unless ($input->validate(@spec)){
         return $input->errors_to_string;
     }
 
