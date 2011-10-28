@@ -97,7 +97,8 @@ sub load_classes {
 
 sub load_plugins {
     my ($meta, $class, @plugins) = @_;
-    my $plgs = $meta->find_attribute_by_name('plugins');
+    my $config = __get_config($meta);
+    confess("config attribute not present") unless blessed($config);
     
     foreach my $plugin (@plugins) {
         if ($plugin !~ /^\+/) {
@@ -107,14 +108,17 @@ sub load_plugins {
             $plugin =~ s/^\+//;
         }
         
-        my $file = $plugin; $file =~ s/::/\//g;
-        require "$file.pm";
+        {
+            my $file = $plugin; $file =~ s/::/\//g;
+            no warnings 'redefine';
+            require "$file.pm";
+        }
     }
     
-    push @plugins, @{$plgs->{default}->()} if @{$plgs->{default}->()};
-    $plgs->{default} = sub { [@plugins] };
+    my $CFG = $config->profile;
+       $CFG->{PLUGINS}->{$_} = 1 for @plugins;
     
-    return $plgs;
+    return [@plugins];
 }
 
 sub mixin {
