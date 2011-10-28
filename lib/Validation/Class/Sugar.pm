@@ -10,7 +10,7 @@ package Validation::Class::Sugar;
 use Scalar::Util qw(blessed);
 use Carp qw(confess);
 
-use Moose ('has');
+use Moose::Role;
 use Moose::Exporter;
 use Module::Find;
 
@@ -21,8 +21,8 @@ Moose::Exporter->setup_import_methods(
         filter
         directive
         load_classes
-    )],
-    also => 'Moose',
+        load_plugins
+    )]
 );
 
 sub directive {
@@ -93,6 +93,27 @@ sub load_classes {
     };
     
     return $rels_map;
+}
+
+sub load_plugins {
+    my ($meta, $class, @plugins) = @_;
+    my $plgs = $meta->find_attribute_by_name('plugins');
+    
+    foreach my $plugin (@plugins) {
+        if ($plugin !~ /^\+/) {
+            $plugin = "Validation::Class::Plugin::$plugin";
+        }
+        else {
+            $plugin =~ s/^\+//;
+        }
+        
+        my $file = $plugin; $file =~ s/::/\//g;
+        require "$file.pm";
+    }
+    
+    $plgs->{default} = sub { [@plugins] };
+    
+    return $plgs;
 }
 
 sub mixin {
