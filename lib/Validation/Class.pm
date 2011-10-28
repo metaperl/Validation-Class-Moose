@@ -659,8 +659,8 @@ declarations:
 =head2 depends_on
 
     # the depends_on directive
-    field 'password_confirm'  => {
-        depends_on => 'password',
+    field 'change_password'  => {
+        depends_on => ['password', 'password_confirm'],
         ...
     };
 
@@ -1264,7 +1264,7 @@ passed validation checks.
         return $input->errors_to_string;
     }
     
-Once cool trick the validate method can perform is the ability to temporarily
+Another cool trick the validate() method can perform is the ability to temporarily
 alter whether a field is required or not during runtime. This functionality is
 often referred to as the *toggle* function.
 
@@ -1323,9 +1323,15 @@ sub unimport {
     goto &$unimport;
 }
 
-# REGISTER TRAITS
+# REGISTER TRAITS - Escape the PAUSE
 
-package Moose::Meta::Attribute::Custom::Trait::Profile;
-sub register_implementation { 'Validation::Class::Meta::Attribute::Profile' }
+    {
+        # Profile
+        package
+            Moose::Meta::Attribute::Custom::Trait::Profile
+        ;   sub register_implementation {
+                'Validation::Class::Meta::Attribute::Profile'
+            }
+    }
 
 1;
