@@ -96,6 +96,13 @@ has 'params' => (
     default => sub { {} }
 );
 
+# class plugins store
+has plugins => (
+    is => 'rw',
+    isa => 'ArrayRef',
+    default => sub { [] }
+);
+
 # class relatives store
 has relatives => (
     is => 'rw',
@@ -143,11 +150,14 @@ has 'types' => (
     }
 );
 
-# im not proud of this - account for the creation of fields, mixins, etc inline
+# im not proud of this
+# this exists because I no not what I do
+# ... so what, fuck you dont use it :}
 around BUILDARGS => sub {
     my ($code, $class, @args) = @_;
     
     my ($meta) = $class->meta;
+    
     my $config = $meta->find_attribute_by_name('config');
     unless ($config) {
         $config = $meta->add_attribute(
@@ -167,6 +177,11 @@ around BUILDARGS => sub {
 # tie it all together after instantiation
 sub BUILD {
     my $self = shift;
+    
+    # attach plugins
+    foreach my $plugin (@{$self->plugins}) {
+        $plugin->meta->apply($self);
+    }
     
     # copy master (modified?) profile to config
     unless (keys %{$self->config}) {
