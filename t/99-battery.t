@@ -123,8 +123,7 @@ my $params = {
     password     => 'pass@@@#$#%$^',
     name         => 'al newkirk',
     phone        => '2155551212',
-    email        => 'awncorp2cpan.org',
-    password_cfm => ''
+    email        => 'awncorp2cpan.org'
 };
 
 $v = MyVal->new( params => $params );
@@ -148,11 +147,11 @@ ok $v->params->{password} eq 'pass',   'password formatting worked';
 # process common password confirmation
 $v->fields->{'password_cfm'} = {
     mixin_field => 'password',
-    value       => 'pass',
+    default	=> 'pass',
     validation  => sub {
-	my ( $self, $this, $fields ) = @_;
-	return lc( $this->{value} ) eq lc( $fields->{password} ) ? 1 : 0;
-      }
+	my ( $self, $this, $params ) = @_;
+	return $this->{value} eq $params->{password} ? 1 : 0;
+    }
 };
 
 ok $v->validate('password'), 'password field validates';
