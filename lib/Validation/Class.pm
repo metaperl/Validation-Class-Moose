@@ -1115,7 +1115,7 @@ L<Hash::Flatten>.
 
 =head2 load_classes
 
-The load_classes method is uses L<Module::Find> to load child classes for
+The load_classes method is used L<Module::Find> to load child classes for
 convenient access through the class() method. Existing parameters and
 configuration options are passed to the child class's constructor. All
 attributes can be easily overwritten using the attribute's accessors on the
@@ -1123,6 +1123,27 @@ child class.
 
     package MyVal;
     use Validation::Class; __PACKAGE__->load_classes;
+    1;
+
+=cut
+
+=head2 load_plugins
+
+The load_plugins method is used to load plugins that support Validation::Class. 
+A Validation::Class plugin is little more than a Role (Moose::Role) that extends
+the Validation::Class core. As usual, an official Validation::Class plugin can
+be referred to using shorthand while custom plugins are called by prefixing a
+plus symbol to the fully-qualified plugin name. Learn more about plugins at
+L<Validation::Class::Plugins>.
+
+    package MyVal;
+    use Validation::Class;
+    
+    __PACKAGE__->load_plugins('SuperX');
+    # loads Validation::Class::Plugin::SuperX
+    
+    __PACKAGE__->load_plugins('+MyApp::Validation::Plugin::SuperY');
+    
     1;
 
 =cut
@@ -1289,12 +1310,17 @@ target fields with a plus or minus as follows:
 
 =cut
 
-use Validation::Class::Sugar ();
+use Moose ('has');
 use Moose::Exporter;
+use MooseX::Traits;
+use Validation::Class::Sugar ();
 
 my ($import, $unimport, $init_meta) = Moose::Exporter->build_import_methods(
-    also             => 'Validation::Class::Sugar',
-    base_class_roles => [
+    also             => [
+        'Moose',
+        'Validation::Class::Sugar'
+    ],
+    base_class_roles => [        
         'Validation::Class::Validator',
         'Validation::Class::Errors'
     ],
@@ -1302,14 +1328,17 @@ my ($import, $unimport, $init_meta) = Moose::Exporter->build_import_methods(
 
 sub init_meta {
     my ($dummy, %opts) = @_;
+    
     Moose->init_meta(%opts);
     Moose::Util::MetaRole::apply_base_class_roles(
         for   => $opts{for_class},
         roles => [
+            'MooseX::Traits',
             'Validation::Class::Validator',
             'Validation::Class::Errors'
         ]
     );
+    
     return Class::MOP::class_of($opts{for_class});
 }
 
@@ -1327,7 +1356,7 @@ sub unimport {
 
     {
         # Profile
-        package
+        package # No you dont
             Moose::Meta::Attribute::Custom::Trait::Profile
         ;   sub register_implementation {
                 'Validation::Class::Meta::Attribute::Profile'

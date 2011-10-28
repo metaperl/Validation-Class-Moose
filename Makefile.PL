@@ -25,9 +25,10 @@ my %WriteMakefileArgs = (
     "Hash::Flatten" => 0,
     "Module::Find" => 0,
     "Moose" => 0,
+    "MooseX::Traits" => 0,
     "Scalar::Util" => 0
   },
-  "VERSION" => "2.3.4",
+  "VERSION" => "2.4.0",
   "test" => {
     "TESTS" => "t/*.t t/filters/*.t t/validators/*.t"
   }

@@ -111,6 +111,7 @@ sub load_plugins {
         require "$file.pm";
     }
     
+    push @plugins, @{$plgs->{default}->()} if @{$plgs->{default}->()};
     $plgs->{default} = sub { [@plugins] };
     
     return $plgs;

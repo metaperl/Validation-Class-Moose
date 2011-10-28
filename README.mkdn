@@ -4,7 +4,7 @@ Validation::Class - Centralized Input Validation for Any Application
 
 # VERSION
 
-version 2.3.4
+version 2.4.0
 
 # SYNOPSIS
 
@@ -645,8 +645,8 @@ declarations:
 ## depends_on
 
     # the depends_on directive
-    field 'password_confirm'  => {
-        depends_on => 'password',
+    field 'change_password'  => {
+        depends_on => ['password', 'password_confirm'],
         ...
     };
 
@@ -1056,7 +1056,7 @@ based on the the default or custom configuration of the hash serializer
 
 ## load_classes
 
-The load_classes method is uses [Module::Find](http://search.cpan.org/perldoc?Module::Find) to load child classes for
+The load_classes method is used [Module::Find](http://search.cpan.org/perldoc?Module::Find) to load child classes for
 convenient access through the class() method. Existing parameters and
 configuration options are passed to the child class's constructor. All
 attributes can be easily overwritten using the attribute's accessors on the
@@ -1064,6 +1064,28 @@ child class.
 
     package MyVal;
     use Validation::Class; __PACKAGE__->load_classes;
+    1;
+
+## load_plugins
+
+The load_plugins method is used to load plugins that support Validation::Class. 
+A Validation::Class plugin is little more than a Role (Moose::Role) that extends
+the Validation::Class core. As usual, an official Validation::Class plugin can
+be referred to using shorthand while custom plugins are called by prefixing a
+plus symbol to the fully-qualified plugin name. Learn more about plugins at
+[Validation::Class::Plugins](http://search.cpan.org/perldoc?Validation::Class::Plugins).
+
+    package MyVal;
+    use Validation::Class;
+    
+
+    __PACKAGE__->load_plugins('SuperX');
+    # loads Validation::Class::Plugin::SuperX
+    
+
+    __PACKAGE__->load_plugins('+MyApp::Validation::Plugin::SuperY');
+    
+
     1;
 
 ## param
@@ -1210,7 +1232,7 @@ passed validation checks.
         return $input->errors_to_string;
     }
 
-Once cool trick the validate method can perform is the ability to temporarily
+Another cool trick the validate() method can perform is the ability to temporarily
 alter whether a field is required or not during runtime. This functionality is
 often referred to as the *toggle* function.
 

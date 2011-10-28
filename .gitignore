@@ -1,6 +1,7 @@
 *
 !.gitignore
 !dist.ini
+!t/*/*/*/*
 !t/*/*/*
 !t/*/*
 !t/*
