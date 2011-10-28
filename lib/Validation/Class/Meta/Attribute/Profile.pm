@@ -13,51 +13,6 @@ has profile => (
     is  => 'rw',
     isa => 'HashRef',
     default => sub {{
-        FIELDS     => {},
-        MIXINS     => {},
-        FILTERS    => {
-            alpha => sub {
-                $_[0] =~ s/[^A-Za-z]//g;
-                $_[0];
-            },
-            alphanumeric => sub {
-                $_[0] =~ s/[^A-Za-z0-9]//g;
-                $_[0];
-            },
-            capitalize => sub {
-                $_[0] = ucfirst $_[0];
-                $_[0] =~ s/\.\s+([a-z])/\. \U$1/g;
-                $_[0];
-            },
-            decimal => sub {
-                $_[0] =~ s/[^0-9\.\,]//g;
-                $_[0];
-            },
-            lowercase => sub {
-                lc $_[0];
-            },
-            numeric => sub {
-                $_[0] =~ s/\D//g;
-                $_[0];
-            },
-            strip => sub {
-                $_[0] =~ s/\s+/ /g;
-                $_[0] =~ s/^\s+//;
-                $_[0] =~ s/\s+$//;
-                $_[0];
-            },
-            titlecase => sub {
-                join( " ", map ( ucfirst, split( /\s/, lc $_[0] ) ) );
-            },
-            trim => sub {
-                $_[0] =~ s/^\s+//g;
-                $_[0] =~ s/\s+$//g;
-                $_[0];
-            },
-            uppercase => sub {
-                uc $_[0];
-            }
-        },
         DIRECTIVES => {
             '.toggle' => {
                 mixin => 0,
@@ -495,7 +450,53 @@ has profile => (
                 field => 1,
                 multi => 1
             }
-        }
+        },
+        FIELDS     => {},
+        FILTERS    => {
+            alpha => sub {
+                $_[0] =~ s/[^A-Za-z]//g;
+                $_[0];
+            },
+            alphanumeric => sub {
+                $_[0] =~ s/[^A-Za-z0-9]//g;
+                $_[0];
+            },
+            capitalize => sub {
+                $_[0] = ucfirst $_[0];
+                $_[0] =~ s/\.\s+([a-z])/\. \U$1/g;
+                $_[0];
+            },
+            decimal => sub {
+                $_[0] =~ s/[^0-9\.\,]//g;
+                $_[0];
+            },
+            lowercase => sub {
+                lc $_[0];
+            },
+            numeric => sub {
+                $_[0] =~ s/\D//g;
+                $_[0];
+            },
+            strip => sub {
+                $_[0] =~ s/\s+/ /g;
+                $_[0] =~ s/^\s+//;
+                $_[0] =~ s/\s+$//;
+                $_[0];
+            },
+            titlecase => sub {
+                join( " ", map ( ucfirst, split( /\s/, lc $_[0] ) ) );
+            },
+            trim => sub {
+                $_[0] =~ s/^\s+//g;
+                $_[0] =~ s/\s+$//g;
+                $_[0];
+            },
+            uppercase => sub {
+                uc $_[0];
+            }
+        },
+        MIXINS     => {},
+        PLUGINS    => {},
     }}
 );
 
