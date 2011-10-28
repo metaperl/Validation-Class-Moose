@@ -1,5 +1,8 @@
 This file documents the revision history for the Perl library Validation::Class.
 
+2.4.3   2011-10-28
+        - Refactored the plugin system
+
 2.4.0   2011-10-28
         - Updated POD, documented new plugin system
         - Added support for a plugin system
