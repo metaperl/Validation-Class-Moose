@@ -1,5 +1,12 @@
 This file documents the revision history for the Perl library Validation::Class.
 
+2.3.4   2011-10-27
+        - Updated POD, documented new toggle feature
+        - Added support for toggling and default directives
+        - Custom validation now has an auto-generated error message
+        - Added new directives, (default, depends_on, max alpha digits
+          sum and symbols as well as min alpha digits sum and symbols
+
 2.1.0   2011-10-27
         - Updated POD
         - Ability to load (child) related classes
