@@ -59,6 +59,11 @@ has profile => (
             }
         },
         DIRECTIVES => {
+            '.toggle' => {
+                mixin => 0,
+                field => 1,
+                multi => 0
+            },
             alias => {
                 mixin => 0,
                 field => 1,
@@ -86,6 +91,49 @@ has profile => (
                             return 0;
                         }
                     }
+                    return 1;
+                }
+            },
+            default => {
+                mixin => 1,
+                field => 1,
+                multi => 1
+            },
+            depends_on => {
+                mixin     => 1,
+                field     => 1,
+                multi     => 1,
+                validator => sub {
+                    my ($directive, $value, $field, $class) = @_;
+                    
+                    if ($value) {
+                        
+                        my $dependents = "ARRAY" eq ref $directive ?
+                        $directive : [$directive];
+                        
+                        if (@{$dependents}) {
+                            
+                            my @blanks = ();
+                            foreach my $dep (@{$dependents}) {
+                                push @blanks,
+                                    $class->fields->{$dep}->{label} ||
+                                    $class->fields->{$dep}->{name} 
+                                    if ! $class->params->{$dep};
+                            }
+                                
+                            if (@blanks) {
+                                my $handle = $field->{label} || $field->{name};
+                                $class->error(
+                                    $field, "$handle requires " .
+                                    join(", ", @blanks) . " to have " .
+                                    (@blanks > 1 ? "values" : "a value")
+                                );
+                                return 0;
+                            }
+                        }
+                        
+                    }
+                    
                     return 1;
                 }
             },
@@ -147,13 +195,57 @@ has profile => (
                     my ( $directive, $value, $field, $class ) = @_;
                     if ($value) {
                         # build the regex
-                        my $password = $value;
-                        my $password_confirmation = $class->params->{$directive} || '';
-                        unless ( $password =~ /^$password_confirmation$/ ) {
+                        my $this = $value;
+                        my $that = $class->params->{$directive} || '';
+                        unless ( $this =~ /^$that$/ ) {
                             my $handle  = $field->{label} || $field->{name};
                             my $handle2 = $class->fields->{$directive}->{label}
                                 || $class->fields->{$directive}->{name};
                             my $error = "$handle does not match $handle2";
+                            $class->error( $field, $error );
+                            return 0;
+                        }
+                    }
+                    return 1;
+                }
+            },
+            max_alpha => {
+                mixin     => 1,
+                field     => 1,
+                multi     => 0,
+                validator => sub {
+                    my ( $directive, $value, $field, $class ) = @_;
+                    if ($value) {
+                        my @i = ($value =~ /[a-zA-Z]/g);
+                        unless ( @i <= $directive ) {
+                            my $handle = $field->{label} || $field->{name};
+                            my $characters = int( $directive ) > 1 ?
+                                "characters" : "character";
+                            my $error = "$handle must contain at-least "
+                            ."$directive alphabetic $characters";
+                            
+                            $class->error( $field, $error );
+                            return 0;
+                        }
+                    }
+                    return 1;
+                }
+            },
+            max_digits => {
+                mixin     => 1,
+                field     => 1,
+                multi     => 0,
+                validator => sub {
+                    my ( $directive, $value, $field, $class ) = @_;
+                    if ($value) {
+                        my @i = ($value =~ /[0-9]/g);
+                        unless ( @i <= $directive ) {
+                            my $handle = $field->{label} || $field->{name};
+                            my $characters = int( $directive ) > 1 ?
+                                "digits" : "digit";
+                            my $error = "$handle must contain at-least "
+                            ."$directive $characters";
+                            
                             $class->error( $field, $error );
                             return 0;
                         }
@@ -172,8 +264,93 @@ has profile => (
                             my $handle = $field->{label} || $field->{name};
                             my $characters = int( $directive ) > 1 ?
                                 "characters" : "character";
-                            my $error = "$handle must contain "
-                            ."$directive $characters or less";
+                            my $error = "$handle can't contain more than "
+                            ."$directive $characters";
+                            
+                            $class->error( $field, $error );
+                            return 0;
+                        }
+                    }
+                    return 1;
+                }
+            },
+            max_sum => {
+                mixin     => 1,
+                field     => 1,
+                multi     => 0,
+                validator => sub {
+                    my ( $directive, $value, $field, $class ) = @_;
+                    if ($value) {
+                        unless ( $value <= $directive ) {
+                            my $handle = $field->{label} || $field->{name};
+                            my $error = "$handle can't be greater than "
+                            ."$directive";
+                            
+                            $class->error( $field, $error );
+                            return 0;
+                        }
+                    }
+                    return 1;
+                }
+            },
+            max_symbols => {
+                mixin     => 1,
+                field     => 1,
+                multi     => 0,
+                validator => sub {
+                    my ( $directive, $value, $field, $class ) = @_;
+                    if ($value) {
+                        my @i = ($value =~ /[^0-9a-zA-Z]/g);
+                        unless ( @i <= $directive ) {
+                            my $handle = $field->{label} || $field->{name};
+                            my $characters = int( $directive ) > 1 ?
+                                "symbols" : "symbol";
+                            my $error = "$handle can't contain more than "
+                            ."$directive $characters";
+                            
+                            $class->error( $field, $error );
+                            return 0;
+                        }
+                    }
+                    return 1;
+                }
+            },
+            min_alpha => {
+                mixin     => 1,
+                field     => 1,
+                multi     => 0,
+                validator => sub {
+                    my ( $directive, $value, $field, $class ) = @_;
+                    if ($value) {
+                        my @i = ($value =~ /[a-zA-Z]/g);
+                        unless ( @i >= $directive ) {
+                            my $handle = $field->{label} || $field->{name};
+                            my $characters = int( $directive ) > 1 ?
+                                "characters" : "character";
+                            my $error = "$handle must contain at-least "
+                            ."$directive alphabetic $characters";
+                            
+                            $class->error( $field, $error );
+                            return 0;
+                        }
+                    }
+                    return 1;
+                }
+            },
+            min_digits => {
+                mixin     => 1,
+                field     => 1,
+                multi     => 0,
+                validator => sub {
+                    my ( $directive, $value, $field, $class ) = @_;
+                    if ($value) {
+                        my @i = ($value =~ /[0-9]/g);
+                        unless ( @i >= $directive ) {
+                            my $handle = $field->{label} || $field->{name};
+                            my $characters = int( $directive ) > 1 ?
+                                "digits" : "digit";
+                            my $error = "$handle must contain at-least "
+                            ."$directive $characters";
                             
                             $class->error( $field, $error );
                             return 0;
@@ -193,8 +370,49 @@ has profile => (
                             my $handle = $field->{label} || $field->{name};
                             my $characters = int( $directive ) > 1 ?
                                 "characters" : "character";
-                            my $error = "$handle must contain "
-                            ."$directive or more $characters";
+                            my $error = "$handle must contain at-least "
+                            ."$directive $characters";
+                            
+                            $class->error( $field, $error );
+                            return 0;
+                        }
+                    }
+                    return 1;
+                }
+            },
+            min_sum => {
+                mixin     => 1,
+                field     => 1,
+                multi     => 0,
+                validator => sub {
+                    my ( $directive, $value, $field, $class ) = @_;
+                    if ($value) {
+                        unless ( $value >= $directive ) {
+                            my $handle = $field->{label} || $field->{name};
+                            my $error = "$handle can't be less than "
+                            ."$directive";
+                            
+                            $class->error( $field, $error );
+                            return 0;
+                        }
+                    }
+                    return 1;
+                }
+            },
+            min_symbols => {
+                mixin     => 1,
+                field     => 1,
+                multi     => 0,
+                validator => sub {
+                    my ( $directive, $value, $field, $class ) = @_;
+                    if ($value) {
+                        my @i = ($value =~ /[^0-9a-zA-Z]/g);
+                        unless ( @i >= $directive ) {
+                            my $handle = $field->{label} || $field->{name};
+                            my $characters = int( $directive ) > 1 ?
+                                "symbols" : "symbol";
+                            my $error = "$handle must contain at-least "
+                            ."$directive $characters";
                             
                             $class->error( $field, $error );
                             return 0;
