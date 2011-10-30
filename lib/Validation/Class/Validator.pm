@@ -190,6 +190,7 @@ sub BUILD {
     
     # attach plugins
     foreach my $plugin (keys %{$self->plugins}) {
+        $plugin->new($self) if $plugin->meta->has_method('new'); # init hook
         $plugin->meta->apply($self);
     }
     
